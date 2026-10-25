@@ -1,53 +1,20 @@
-/* js/inti/dasar.js */
-const $=s=>document.querySelector(s),rp=n=>'Rp'+Math.round(n).toLocaleString('id-ID'),KEY='dimsummama1';
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-/* v31: nama toko dari tab Setup di Google Sheet (S.toko). Tanda berbahaya dibuang agar aman dipasang di HTML. */
-const NM=()=>{try{return String((S&&S.toko&&S.toko.n)||'Dimsum Mama').replace(/[<>"`\\$]/g,'')||'Dimsum Mama'}catch(e){return'Dimsum Mama'}},
- NK=()=>{try{return String((S&&S.toko&&S.toko.k)||'Surabaya').replace(/[<>"`\\$]/g,'')||'Surabaya'}catch(e){return'Surabaya'}},
- NA=()=>{try{return String((S&&S.toko&&S.toko.al)||'Ngagel, Surabaya').replace(/[<>"`\\$]/g,'')||'Ngagel, Surabaya'}catch(e){return'Ngagel, Surabaya'}},
- tplToko=t=>String(t==null?'':t).replace(/DIMSUM MAMA/g,NM().toUpperCase()).replace(/Dimsum Mama/g,NM()).replace(/Ngagel, Surabaya/g,NA()),
- NMH=()=>{const w=esc(NM()).split(' ');return w.length>1?w.slice(0,-1).join(' ')+' <span class="o">'+w[w.length-1]+'</span>':'<span class="o">'+w[0]+'</span>'};
-const ST={menunggu:'Menunggu Pembayaran',verifikasi:'Menunggu Verifikasi',dibayar:'Sudah Dibayar',dikemas:'Sedang Dikemas',dikirim:'Dikirim',selesai:'Selesai',dibatalkan:'Dibatalkan',kedaluwarsa:'Kedaluwarsa'};
-const PAID=['dibayar','dikemas','dikirim','selesai'];
-const API_URL='https://script.google.com/macros/s/AKfycbw6mibz3DwBAztRTpQVXPl6p_zpw5J2yYA5E8GxhHvY6N4OPRiWuHTu5Auu1jwbjbEGcg/exec';
-const me=()=>{try{return JSON.parse(localStorage.getItem('tokoses'))}catch(e){return null}},adm=()=>{const m=me();return !!m&&m.r!='customer'};
-const P=id=>S.p.find(p=>p.id==id),avail=(p,k)=>p.habis?0:Math.max(0,p.v[k].s-p.v[k].r),tot=p=>Object.keys(p.v).reduce((a,k)=>a+avail(p,k),0),price=p=>p.d||p.h;
-const lines=()=>S.cart.map(c=>({...c,p:P(c.pid)}));
-const hm=t=>new Date(t).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-const waNo=v=>{let d=String(v||'').replace(/\D/g,'');if(d.startsWith('0'))d='62'+d.slice(1);return d},qLink=()=>/^https?:/.test(qsrc()||'');
-/* Banyak perangkat: ambil pesanan baru, status, stok, dan akun terbaru dari Sheet (tiap 20 detik) */
-const RK={menunggu:1,verifikasi:2,dibayar:3,dikemas:4,dikirim:5,selesai:6,dibatalkan:7,kedaluwarsa:7};
-const idle=()=>{const a=document.activeElement;return !a||!/INPUT|TEXTAREA|SELECT/.test(a.tagName)};
-const hari=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-const tg=t=>new Date(t+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
-const nid=p=>p+Date.now().toString(36)+Math.floor(Math.random()*1e3).toString(36);
-/* ===== v20: edit pesanan, cetak, refund, rekap per tanggal + ekspor, cermin ke Google Sheet ===== */
-const ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-/* ----- tagihan + pengingat WhatsApp ----- */
-const hrs=t=>Math.max(0,Math.floor((new Date(hari()+'T00:00:00')-new Date(t+'T00:00:00'))/864e5));
-/* ===== v23: pesan ulang, toko tutup/libur, bunyi pesanan baru, QRIS di kasir ===== */
-const tglWIB=()=>{try{return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Jakarta'})}catch(e){return ds(new Date())}};
-const addHari=(t,k)=>{const d=new Date(t+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+k);return d.toISOString().slice(0,10)};
-function seed(){
- const M=(n,h,g,e,s,imgs)=>({n,k:'Frozen',h,d:0,g,e,t:'makanan',luar:false,habis:false,sold:0,img:imgs[0]||'',imgs,v:{porsi:{s,r:0}}});
- const L=[M('Shrimp Roll Udang Ayam',35000,300,'🍤',20,['img/shrimp-roll-4.jpg','img/shrimp-roll-1.jpg','img/shrimp-roll-2.jpg','img/shrimp-roll-3.jpg']),
- M('Dimsum Ayam Udang',30000,300,'🥟',20,[])];
- L.forEach((p,i)=>p.id='p'+(i+1));
- return{p:L,o:[],cart:[],qris:'',kurir:{JNE:1,TIKI:1,Wahana:1,Gojek:1}}}
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.p)return s}catch(e){}return seed()}
-function save(){try{stampU()}catch(e){}try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Penyimpanan penuh. Pakai gambar QRIS yang lebih kecil.')}sync()}
-function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2800)}
-function expire(){let ch=0;if(poBersih())ch=1;S.o.forEach(o=>{if(o.status=='menunggu'&&Date.now()>o.exp){rel(o);o.status='kedaluwarsa';ch=1}});if(ch)save()}
-function rel(o){if(o.po)return;o.items.forEach(i=>{const p=P(i.pid);if(p)p.v[i.key].r=Math.max(0,p.v[i.key].r-i.q)})}
-async function hs(pw,salt){if(!window.crypto||!crypto.subtle){toast('Browser tidak mendukung. Buka lewat https atau localhost.');throw 0}const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+pw));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-async function mk(u,pw,r){const sl=[...crypto.getRandomValues(new Uint8Array(8))].map(x=>x.toString(16)).join('');return{u,s:sl,h:await hs(pw,sl),r}}
-async function salin(t){try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(x){}a.remove()}toast('Tersalin. Tempel di WhatsApp.')}
-function waNum(h){let d=String(h||'').replace(/[^\d+]/g,'');if(d[0]=='+')d=d.slice(1);if(d[0]=='0')d='62'+d.slice(1);else if(d[0]=='8')d='62'+d;return/^62\d{8,13}$/.test(d)?d:''}
-function waOpen(hp,msg){const n=waNum(hp);if(!n)return toast('Nomor HP pelanggan belum benar. Perbaiki di tab Pelanggan.'),false;open('https://wa.me/'+n+'?text='+encodeURIComponent(msg),'_blank');return true}
-/* konfirmasi tanpa menggambar ulang layar, supaya isian yang sedang diketik tidak hilang */
-function kfX(){const d=$('#kf');if(d)d.remove()}
-function konfirm(msg,fn,lbl){kfX();const d=document.createElement('div');d.id='kf';d.className='mod';d.innerHTML=`<div><b>Yakin?</b><p>${esc(msg)}</p><div class="row"><button class="btn o" id="kfn">Batal</button><button class="btn r" id="kfy">${esc(lbl||'Ya, lanjutkan')}</button></div></div>`;document.body.appendChild(d);$('#kfn').onclick=kfX;$('#kfy').onclick=()=>{kfX();fn()};d.onclick=e=>{if(e.target==d)kfX()}}
-function wibNow(){try{const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()),g=t=>(p.find(x=>x.type==t)||{}).value;return{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(g('weekday')),min:(+g('hour'))*60+(+g('minute'))}}catch(e){const d=new Date();return{wd:d.getDay(),min:d.getHours()*60+d.getMinutes()}}}
-function salinTeks(t,msg){const ok=()=>toast(msg||'Tersalin.');try{if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t).then(ok,()=>salin2(t,ok))}catch(e){}salin2(t,ok)}
-function salin2(t,ok){const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove();ok()}
-(window.__muat=window.__muat||[]).push('js/inti/dasar.js');
+/* js/toko/akun.js */
+/* v13: akun di Google Sheet, tambah produk dari toko */
+const loginF=()=>`<label>Nama pengguna</label><input id="lu" autocomplete="username"><label>Password</label><input id="pw" type="password" autocomplete="current-password" onkeydown="if(event.key=='Enter')masukAkun()"><button class="btn" style="margin-top:10px" onclick="masukAkun()">Masuk</button>`;
+const setSes=r=>{localStorage.setItem('tokotok',r.tok);localStorage.setItem('tokoses',JSON.stringify({u:r.u,r:r.role,nama:r.nama||'',wa:r.wa||''}))};
+const eAkun=e=>e=='Kunci salah'?'Server Google Sheet masih versi lama. Tempel Code.gs terbaru di Apps Script, lalu Deploy > New version.':e;
+const sayaBox=()=>`<div class="box"><div class="row"><b>Riwayat pesanan saya</b><button class="btn o s" onclick="V.sy=null;V.syq=0;draw()">Muat ulang</button></div>${V.sy==null?'<p class="mut">Memuat…</p>':(V.sy.length?V.sy.map(o=>`<div class="box"><div class="row"><b>${esc(o.inv)}</b><span class="st">${ST[o.s]||esc(o.s)}</span></div><div class="mut">${new Date(o.t).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})} · ${esc(o.k)}</div>${o.po?'<div class="ok">📅 Pre-order · kirim '+esc(poFmt(o.po))+'</div>':''}<div>${esc(o.i)}</div><div class="row" style="margin-top:6px"><span>Total</span><b>${rp(o.tf)}</b></div>${lacakBox({kurir:o.k,resi:o.r,status:o.s})}${['menunggu','verifikasi'].includes(o.s)?'':`<div style="margin-top:8px">${o.s=='dikirim'?terimaBtn(o.inv)+' ':''}${ulangBtn(o.inv)}</div>`}</div>`).join(''):'<p class="mut">Belum ada pesanan dari akun ini. Pesanan yang dibuat saat Anda sudah masuk akan muncul di sini.</p>')}</div>`;
+async function login(){try{await login0()}catch(e){toast('Gagal masuk: '+(e&&e.message||e||'cek koneksi / buka lewat https'))}}
+async function login0(){const n=$('#lu').value.trim(),u=(S.users||[]).find(x=>x.u==n);if(!u||await hs($('#pw').value,u.s)!=u.h)return toast('Nama pengguna atau password salah.');sessionStorage.setItem('adm',u.u);if((S.api||API_URL)&&gk())await pull(0);draw()}
+async function setup(){try{await setup0()}catch(e){toast('Gagal membuat admin: '+(e&&e.message||e||'buka lewat https atau localhost'))}}
+function resetAkun(){if(!confirm('Hapus semua akun admin/staf di perangkat ini dan buat ulang? Data produk tidak dihapus.'))return;S.users=[];save();sessionStorage.removeItem('adm');draw()}
+async function setup0(){const u=$('#su').value.trim(),p=$('#sp').value;if(!/^[\w.-]{3,20}$/.test(u))return toast('Nama pengguna 3-20 huruf/angka.');if(p.length<8)return toast('Password minimal 8 karakter.');if(p!=$('#sq').value)return toast('Ulangi password tidak sama.');S.users=[await mk(u,p,'admin')];save();sessionStorage.setItem('adm',u);draw()}
+function keluar(){try{ringStop()}catch(e){}V.sy=null;V.syq=0;localStorage.removeItem('tokotok');localStorage.removeItem('tokoses');V.ul=null;V.ulq=0;draw()}
+async function masukAkun(){const u=($('#lu').value||'').trim(),p=$('#pw').value;if(!u||!p)return toast('Isi nama pengguna dan password.');if(!(S.api||API_URL))return toast('URL Web App belum diisi.');
+ try{const r=await pubPost({act:'login',u,p});if(!r.ok)return toast(eAkun(r.err||'Gagal masuk.'));setSes(r);toast('Halo, '+(r.nama||r.u)+'.');if(r.role=='customer')go('/');else await pull(0);draw()}catch(e){toast('Tidak bisa menghubungi Google Sheet.')}}
+async function daftarAkun(){const g=i=>($(i).value||'').trim(),u=g('#ru'),p=$('#rp').value;if(!/^[\w.-]{3,20}$/.test(u))return toast('Nama pengguna 3-20 huruf/angka, tanpa spasi.');if(p.length<8)return toast('Password minimal 8 karakter.');if(p!=$('#rq').value)return toast('Ulangi password tidak sama.');
+ try{const r=await pubPost({act:'daftar',u,p,nama:g('#rn'),wa:g('#rw')});if(!r.ok)return toast(eAkun(r.err||'Gagal daftar.'));setSes(r);toast('Akun dibuat. Selamat datang!');go('/');draw()}catch(e){toast('Tidak bisa menghubungi Google Sheet.')}}
+function akun(){const m=me();if(m&&m.r=='customer'&&V.sy==null&&!V.syq){V.syq=1;sayaLoad()}if(m)return`<h2>Akun saya</h2><div class="box"><b>${esc(m.nama||m.u)}</b> <span class="st">${m.r}</span><p class="mut">Nama pengguna: ${esc(m.u)}</p>${m.r=='customer'?'<p class="mut">Nama dan WhatsApp Anda terisi otomatis saat checkout.</p>':'<button class="btn o s" onclick="go(\'/admin\')">Buka dashboard</button> '}<button class="btn r s" onclick="keluar()">Keluar</button></div>${m.r=='customer'?adrAkunBox()+sayaBox():''}`;
+ return`<h2>Masuk atau daftar</h2><div class="box"><b>Masuk</b>${loginF()}</div><div class="box"><b>Daftar akun pelanggan</b><label>Nama pengguna</label><input id="ru" autocomplete="username"><label>Nama lengkap</label><input id="rn"><label>Nomor WhatsApp</label><input id="rw" inputmode="tel"><label>Password (min. 8 karakter)</label><input id="rp" type="password" autocomplete="new-password"><label>Ulangi password</label><input id="rq" type="password"><button class="btn" style="margin-top:10px" onclick="daftarAkun()">Daftar</button></div>`}
+async function sayaLoad(){try{const r=await pubPost({act:'saya',tok:tk()});if(r.ok){V.sy=r.o;draw()}else if(r.err=='Sesi habis')keluar();else{V.sy=[];draw();toast(eAkun(r.err||'Gagal memuat riwayat.'))}}catch(e){V.syq=0}}
+(window.__muat=window.__muat||[]).push('js/toko/akun.js');

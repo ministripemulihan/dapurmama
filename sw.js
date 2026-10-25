@@ -1,5 +1,5 @@
-// Service worker Dimsum Mama: cache cangkang aplikasi, jaringan didahulukan. Data Google Sheet tidak di-cache.
-const C='dm-v1',A=['./','index.html','manifest.json','manifest-admin.json','icon-192.png','icon-512.png'];
+// Service worker toko: cache cangkang aplikasi, jaringan didahulukan. Data Google Sheet tidak di-cache.
+const C='dm-v32',A=["./","index.html","manifest.json","manifest-admin.json","icon-192.png","icon-512.png","css/style.css","js/inti/galat.js","js/inti/dasar.js","js/inti/sinkron.js","js/inti/tampilan.js","js/inti/pwa.js","js/media/foto.js","js/media/qris.js","js/media/bunyi.js","js/toko/ongkir.js","js/toko/voucher.js","js/toko/wilayah.js","js/toko/alamat.js","js/toko/jadwal.js","js/toko/resi.js","js/toko/katalog.js","js/toko/belanja.js","js/toko/akun.js","js/toko/info.js","js/admin/pesanan.js","js/admin/stok.js","js/admin/offline.js","js/admin/cetak.js","js/admin/laporan.js","js/admin/cadangan.js","js/admin/pengguna.js","js/admin/katalog.js","js/admin/pengaturan.js","js/admin/biaya.js","js/admin/dasbor.js","js/inti/mulai.js","js/tambahan/fitur27.js","js/tambahan/fitur29.js","js/tambahan/fitur31.js","wilayah/indeks.js"];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A).catch(()=>{})).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!=C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const r=e.request,u=new URL(r.url);if(r.method!='GET'||u.origin!=location.origin)return;

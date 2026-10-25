@@ -1,53 +1,57 @@
-/* js/inti/dasar.js */
-const $=s=>document.querySelector(s),rp=n=>'Rp'+Math.round(n).toLocaleString('id-ID'),KEY='dimsummama1';
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-/* v31: nama toko dari tab Setup di Google Sheet (S.toko). Tanda berbahaya dibuang agar aman dipasang di HTML. */
-const NM=()=>{try{return String((S&&S.toko&&S.toko.n)||'Dimsum Mama').replace(/[<>"`\\$]/g,'')||'Dimsum Mama'}catch(e){return'Dimsum Mama'}},
- NK=()=>{try{return String((S&&S.toko&&S.toko.k)||'Surabaya').replace(/[<>"`\\$]/g,'')||'Surabaya'}catch(e){return'Surabaya'}},
- NA=()=>{try{return String((S&&S.toko&&S.toko.al)||'Ngagel, Surabaya').replace(/[<>"`\\$]/g,'')||'Ngagel, Surabaya'}catch(e){return'Ngagel, Surabaya'}},
- tplToko=t=>String(t==null?'':t).replace(/DIMSUM MAMA/g,NM().toUpperCase()).replace(/Dimsum Mama/g,NM()).replace(/Ngagel, Surabaya/g,NA()),
- NMH=()=>{const w=esc(NM()).split(' ');return w.length>1?w.slice(0,-1).join(' ')+' <span class="o">'+w[w.length-1]+'</span>':'<span class="o">'+w[0]+'</span>'};
-const ST={menunggu:'Menunggu Pembayaran',verifikasi:'Menunggu Verifikasi',dibayar:'Sudah Dibayar',dikemas:'Sedang Dikemas',dikirim:'Dikirim',selesai:'Selesai',dibatalkan:'Dibatalkan',kedaluwarsa:'Kedaluwarsa'};
-const PAID=['dibayar','dikemas','dikirim','selesai'];
-const API_URL='https://script.google.com/macros/s/AKfycbw6mibz3DwBAztRTpQVXPl6p_zpw5J2yYA5E8GxhHvY6N4OPRiWuHTu5Auu1jwbjbEGcg/exec';
-const me=()=>{try{return JSON.parse(localStorage.getItem('tokoses'))}catch(e){return null}},adm=()=>{const m=me();return !!m&&m.r!='customer'};
-const P=id=>S.p.find(p=>p.id==id),avail=(p,k)=>p.habis?0:Math.max(0,p.v[k].s-p.v[k].r),tot=p=>Object.keys(p.v).reduce((a,k)=>a+avail(p,k),0),price=p=>p.d||p.h;
-const lines=()=>S.cart.map(c=>({...c,p:P(c.pid)}));
-const hm=t=>new Date(t).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-const waNo=v=>{let d=String(v||'').replace(/\D/g,'');if(d.startsWith('0'))d='62'+d.slice(1);return d},qLink=()=>/^https?:/.test(qsrc()||'');
-/* Banyak perangkat: ambil pesanan baru, status, stok, dan akun terbaru dari Sheet (tiap 20 detik) */
-const RK={menunggu:1,verifikasi:2,dibayar:3,dikemas:4,dikirim:5,selesai:6,dibatalkan:7,kedaluwarsa:7};
-const idle=()=>{const a=document.activeElement;return !a||!/INPUT|TEXTAREA|SELECT/.test(a.tagName)};
-const hari=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-const tg=t=>new Date(t+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
-const nid=p=>p+Date.now().toString(36)+Math.floor(Math.random()*1e3).toString(36);
-/* ===== v20: edit pesanan, cetak, refund, rekap per tanggal + ekspor, cermin ke Google Sheet ===== */
-const ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-/* ----- tagihan + pengingat WhatsApp ----- */
-const hrs=t=>Math.max(0,Math.floor((new Date(hari()+'T00:00:00')-new Date(t+'T00:00:00'))/864e5));
-/* ===== v23: pesan ulang, toko tutup/libur, bunyi pesanan baru, QRIS di kasir ===== */
-const tglWIB=()=>{try{return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Jakarta'})}catch(e){return ds(new Date())}};
-const addHari=(t,k)=>{const d=new Date(t+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+k);return d.toISOString().slice(0,10)};
-function seed(){
- const M=(n,h,g,e,s,imgs)=>({n,k:'Frozen',h,d:0,g,e,t:'makanan',luar:false,habis:false,sold:0,img:imgs[0]||'',imgs,v:{porsi:{s,r:0}}});
- const L=[M('Shrimp Roll Udang Ayam',35000,300,'🍤',20,['img/shrimp-roll-4.jpg','img/shrimp-roll-1.jpg','img/shrimp-roll-2.jpg','img/shrimp-roll-3.jpg']),
- M('Dimsum Ayam Udang',30000,300,'🥟',20,[])];
- L.forEach((p,i)=>p.id='p'+(i+1));
- return{p:L,o:[],cart:[],qris:'',kurir:{JNE:1,TIKI:1,Wahana:1,Gojek:1}}}
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.p)return s}catch(e){}return seed()}
-function save(){try{stampU()}catch(e){}try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Penyimpanan penuh. Pakai gambar QRIS yang lebih kecil.')}sync()}
-function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2800)}
-function expire(){let ch=0;if(poBersih())ch=1;S.o.forEach(o=>{if(o.status=='menunggu'&&Date.now()>o.exp){rel(o);o.status='kedaluwarsa';ch=1}});if(ch)save()}
-function rel(o){if(o.po)return;o.items.forEach(i=>{const p=P(i.pid);if(p)p.v[i.key].r=Math.max(0,p.v[i.key].r-i.q)})}
-async function hs(pw,salt){if(!window.crypto||!crypto.subtle){toast('Browser tidak mendukung. Buka lewat https atau localhost.');throw 0}const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+pw));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-async function mk(u,pw,r){const sl=[...crypto.getRandomValues(new Uint8Array(8))].map(x=>x.toString(16)).join('');return{u,s:sl,h:await hs(pw,sl),r}}
-async function salin(t){try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(x){}a.remove()}toast('Tersalin. Tempel di WhatsApp.')}
-function waNum(h){let d=String(h||'').replace(/[^\d+]/g,'');if(d[0]=='+')d=d.slice(1);if(d[0]=='0')d='62'+d.slice(1);else if(d[0]=='8')d='62'+d;return/^62\d{8,13}$/.test(d)?d:''}
-function waOpen(hp,msg){const n=waNum(hp);if(!n)return toast('Nomor HP pelanggan belum benar. Perbaiki di tab Pelanggan.'),false;open('https://wa.me/'+n+'?text='+encodeURIComponent(msg),'_blank');return true}
-/* konfirmasi tanpa menggambar ulang layar, supaya isian yang sedang diketik tidak hilang */
-function kfX(){const d=$('#kf');if(d)d.remove()}
-function konfirm(msg,fn,lbl){kfX();const d=document.createElement('div');d.id='kf';d.className='mod';d.innerHTML=`<div><b>Yakin?</b><p>${esc(msg)}</p><div class="row"><button class="btn o" id="kfn">Batal</button><button class="btn r" id="kfy">${esc(lbl||'Ya, lanjutkan')}</button></div></div>`;document.body.appendChild(d);$('#kfn').onclick=kfX;$('#kfy').onclick=()=>{kfX();fn()};d.onclick=e=>{if(e.target==d)kfX()}}
-function wibNow(){try{const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()),g=t=>(p.find(x=>x.type==t)||{}).value;return{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(g('weekday')),min:(+g('hour'))*60+(+g('minute'))}}catch(e){const d=new Date();return{wd:d.getDay(),min:d.getHours()*60+d.getMinutes()}}}
-function salinTeks(t,msg){const ok=()=>toast(msg||'Tersalin.');try{if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t).then(ok,()=>salin2(t,ok))}catch(e){}salin2(t,ok)}
-function salin2(t,ok){const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove();ok()}
-(window.__muat=window.__muat||[]).push('js/inti/dasar.js');
+/* js/media/bunyi.js */
+/* Bunyi pesanan baru (lagu bisa dipilih penjual; pengaturan per perangkat) */
+const LAGU={
+ lonceng:{n:'Lonceng toko (ding-dong)',u:300,w:'bel',t:'E6:2 C6:3'},
+ kasir:{n:'Ting-ting kasir',u:140,w:'bel',t:'G6:1 C7:1 E7:1 G7:4'},
+ elise:{n:'Für Elise (Beethoven)',u:125,w:'tri',t:'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:3 R:1 C4:1 E4:1 A4:1 B4:3 R:1 E4:1 G#4:1 B4:1 C5:4'},
+ ode:{n:'Ode to Joy (Beethoven)',u:240,w:'tri',t:'E5:1 E5:1 F5:1 G5:1 G5:1 F5:1 E5:1 D5:1 C5:1 C5:1 D5:1 E5:1 E5:1.5 D5:.5 D5:2'},
+ twinkle:{n:'Twinkle Twinkle Little Star',u:260,w:'tri',t:'C5:1 C5:1 G5:1 G5:1 A5:1 A5:1 G5:2 F5:1 F5:1 E5:1 E5:1 D5:1 D5:1 C5:2'},
+ jingle:{n:'Jingle Bells',u:220,w:'tri',t:'E5:1 E5:1 E5:2 E5:1 E5:1 E5:2 E5:1 G5:1 C5:1.5 D5:.5 E5:4'},
+ ultah:{n:'Selamat Ulang Tahun',u:260,w:'tri',t:'G4:.75 G4:.25 A4:1 G4:1 C5:1 B4:2 G4:.75 G4:.25 A4:1 G4:1 D5:1 C5:2'},
+ pentatonik:{n:'Pentatonik lembut (nada asli)',u:200,w:'bel',t:'E5:1 G5:1 A5:1 G5:1 E5:1 D5:1 C5:2 R:1 E5:1 G5:1 A5:2 C6:3'}};
+const NN={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+let AC=null;
+const bn=()=>{let b={};try{b=JSON.parse(localStorage.getItem('tokobunyi'))||{}}catch(e){}return{on:b.on==null?1:b.on,lagu:b.lagu||'kasir',vol:b.vol==null?.8:+b.vol,ulang:b.ulang==null?3:+b.ulang,bayar:b.bayar==null?1:b.bayar,getar:b.getar==null?1:b.getar}};
+let BF=null,BFk='';
+const RG={t:0,left:0,gap:0};
+function laguNada(id){const L=LAGU[id]||LAGU.kasir;return L.t.split(/\s+/).map(x=>{const a=x.split(':'),u=+a[1]||1;if(a[0]=='R')return{r:1,u};const m=a[0].match(/^([A-G])([#b]?)(\d)$/);const s=NN[m[1]]+(m[2]=='#'?1:m[2]=='b'?-1:0);return{f:440*Math.pow(2,((+m[3]+1)*12+s-69)/12),u}})}
+function acx(){try{if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C()}return AC}catch(e){return null}}
+function bunyiBuka(){if(!adm()&&!/admin/.test(route()))return;const c=acx();if(c&&c.state!='running'&&c.resume)c.resume().then(()=>{const e=document.getElementById('bnbn');if(e&&c.state=='running')e.remove()}).catch(()=>{})}
+function bnSet(k,v){const b=bn();b[k]=v;try{localStorage.setItem('tokobunyi',JSON.stringify(b))}catch(e){toast('Penyimpanan penuh.')}}
+function nada(c,t,f,d,v,w){const o=c.createOscillator(),g=c.createGain();o.type=w=='bel'?'sine':'triangle';o.frequency.value=f;
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,v),t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+.05);
+ if(w=='bel'){const o2=c.createOscillator(),g2=c.createGain();o2.type='sine';o2.frequency.value=f*2.76;g2.gain.setValueAtTime(.0001,t);g2.gain.exponentialRampToValueAtTime(Math.max(.0002,v*.35),t+.01);g2.gain.exponentialRampToValueAtTime(.0001,t+d*.45);o2.connect(g2);g2.connect(c.destination);o2.start(t);o2.stop(t+d*.5+.05)}}
+async function mainFile(c,vol){const d=localStorage.getItem('tokobunyifile');if(!d)return 0;
+ try{if(BFk!=d){const b=atob(d.split(',')[1]),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);BF=await new Promise((ok,no)=>{const p=c.decodeAudioData(a.buffer,ok,no);if(p&&p.catch)p.catch(no)});BFk=d}
+  const s=c.createBufferSource(),g=c.createGain();s.buffer=BF;g.gain.value=vol;s.connect(g);g.connect(c.destination);const dur=Math.min(BF.duration,15);s.start();s.stop(c.currentTime+dur);return Math.round(dur*1000)}
+ catch(e){toast('File nada tidak bisa diputar. Pilih file mp3/wav/m4a yang lain.');return 0}}
+async function mainkan(id,vol){const b=bn(),c=acx();id=id||b.lagu;vol=vol==null?b.vol:vol;if(!c)return 0;
+ try{if(c.state!='running'&&c.resume)await c.resume()}catch(e){}
+ if(c.state!='running')return 0;
+ if(id=='sendiri')return mainFile(c,vol);
+ const L=LAGU[id]||LAGU.kasir,u=L.u/1000;let t=c.currentTime+.05;const t0=t;
+ laguNada(id).forEach(n=>{if(!n.r)nada(c,t,n.f,Math.max(.18,n.u*u*1.6),.32*vol,L.w);t+=n.u*u});
+ return Math.round((t-t0)*1000)}
+function bnFile(i){const f=i.files[0];if(!f)return;if(f.size>7e5)return toast('File maksimal 700 KB. Potong lagunya jadi sekitar 10–15 detik.');
+ const r=new FileReader();r.onload=()=>{try{localStorage.setItem('tokobunyifile',r.result);localStorage.setItem('tokobunyinama',f.name.slice(0,60));BFk='';bnSet('lagu','sendiri');draw();mainkan()}catch(e){toast('Penyimpanan penuh. Pakai file yang lebih kecil.')}};r.readAsDataURL(f)}
+async function ring(jenis,n){const b=bn();if(!b.on||!adm()||!(n>0)||(jenis=='bayar'&&!b.bayar))return;
+ const r=V.ring=V.ring||{baru:0,bayar:0};r[jenis]+=n;
+ if(!TT0)TT0=document.title;document.title='🔔 ('+(r.baru+r.bayar)+') Pesanan masuk — '+NM();
+ if(b.getar&&navigator.vibrate)try{navigator.vibrate([200,100,200])}catch(e){}
+ const ms=await mainkan();clearInterval(RG.t);RG.left=Math.max(0,b.ulang-1);RG.gap=Math.max(20000,(ms||0)+15000);
+ if(RG.left>0)RG.t=setInterval(()=>{if(!adm()||!V.ring||RG.left<=0){clearInterval(RG.t);return}RG.left--;mainkan()},RG.gap)}
+function ringStop(){clearInterval(RG.t);V.ring=null;if(TT0){document.title=TT0;TT0=''}}
+function ringLihat(){ringStop();V.tab='ver';draw()}
+function ringBar(){const r=V.ring;let h='';
+ if(bn().on&&!(AC&&AC.state=='running'))h+=`<div class="box" id="bnbn" style="border-color:#d29922"><div class="row"><span>🔇 Bunyi pesanan belum aktif di perangkat ini. Ketuk sekali agar boleh berbunyi.</span><button class="btn s" onclick="bunyiBuka();mainkan(null,.5);setTimeout(draw,500)">Aktifkan bunyi</button></div></div>`;
+ if(r&&(r.baru+r.bayar)>0)h+=`<div class="box" style="border-color:var(--acc)"><div class="row"><b>🔔 ${r.baru?r.baru+' pesanan baru':''}${r.baru&&r.bayar?' · ':''}${r.bayar?r.bayar+' sudah bayar, menunggu dicek':''}</b><span><button class="btn s" onclick="ringLihat()">Buka Verifikasi</button> <button class="btn o s" onclick="ringStop();draw()">Diamkan</button></span></div></div>`;
+ return h}
+function bunyiBox(){const b=bn(),nf=localStorage.getItem('tokobunyinama')||'',ck=(k,v,t)=>`<label style="display:flex;gap:10px;align-items:center;color:var(--ink)"><input type="checkbox" style="width:auto;min-height:0" ${v?'checked':''} onchange="bnSet('${k}',this.checked?1:0);draw()">${t}</label>`;
+ return`<div class="box"><b>🔔 Bunyi pesanan online baru</b><p class="mut">Berbunyi di perangkat ini saat ada pesanan online baru atau pembeli menekan "Saya sudah bayar". Pengaturan ini per perangkat, jadi HP dan laptop boleh berbeda. Aplikasi harus sedang terbuka (di HP: biarkan layar menyala, jangan tutup aplikasinya).</p>
+${ck('on',b.on,'Bunyikan saat ada pesanan baru')}${ck('bayar',b.bayar,'Juga saat pembeli menekan "Saya sudah bayar"')}${ck('getar',b.getar,'Getar (di HP)')}
+<label>Pilih nada lagu</label><div class="row"><select style="flex:1" onchange="bnSet('lagu',this.value);mainkan()">${Object.keys(LAGU).map(k=>`<option value="${k}" ${b.lagu==k?'selected':''}>${esc(LAGU[k].n)}</option>`).join('')}<option value="sendiri" ${b.lagu=='sendiri'?'selected':''} ${nf?'':'disabled'}>${nf?'Nada saya: '+esc(nf):'Nada saya sendiri (unggah dulu)'}</option></select><button class="btn o s" onclick="bunyiBuka();mainkan()">▶ Coba</button></div>
+<label>Volume</label><input type="range" min="10" max="100" value="${Math.round(b.vol*100)}" style="padding:0" onchange="bnSet('vol',this.value/100);mainkan()">
+<label>Ulangi bunyi jika belum dibuka</label><select onchange="bnSet('ulang',+this.value)">${[[1,'Sekali saja'],[3,'3 kali (tiap ± 30 detik)'],[5,'5 kali'],[10,'10 kali']].map(x=>`<option value="${x[0]}" ${b.ulang==x[0]?'selected':''}>${x[1]}</option>`).join('')}</select>
+<label>Pakai lagu sendiri (mp3/wav/m4a, maks 700 KB, diputar maks 15 detik)</label><input type="file" accept="audio/*" onchange="bnFile(this)">
+<p class="mut">Lagu bawaan memakai melodi domain publik. Untuk lagu sendiri, pastikan Anda berhak memakainya.</p></div>`}
+(window.__muat=window.__muat||[]).push('js/media/bunyi.js');

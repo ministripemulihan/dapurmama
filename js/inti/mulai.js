@@ -3,6 +3,7 @@
 (function(){var ada=window.__muat||[],perlu=["js/inti/dasar.js","js/inti/sinkron.js","js/inti/tampilan.js","js/inti/pwa.js","js/media/foto.js","js/media/qris.js","js/media/bunyi.js","js/toko/ongkir.js","js/toko/wilayah.js","js/toko/alamat.js","js/toko/jadwal.js","js/toko/resi.js","js/toko/katalog.js","js/toko/belanja.js","js/toko/akun.js","js/toko/info.js","js/admin/pesanan.js","js/admin/stok.js","js/admin/offline.js","js/admin/cetak.js","js/admin/laporan.js","js/admin/cadangan.js","js/admin/pengguna.js","js/admin/katalog.js","js/admin/pengaturan.js","js/admin/biaya.js","js/admin/keuangan.js","js/admin/beranda.js","js/admin/dasbor.js"],hilang=perlu.filter(function(p){return ada.indexOf(p)<0});
  if(hilang.length&&window.galat27)window.galat27('Berkas gagal dimuat: '+hilang.join(', '),'js/inti/mulai.js',0)})();
 let S=load(),V={q:'',cat:'Semua',tab:'home',open:null,sel:{q:1},kota:'',kur:''};
+try{document.documentElement.dataset.lebar=localStorage.getItem('tokolebar')||'auto'}catch(e){}
 try{addEventListener('hashchange',draw);}catch(e){window.galat27&&galat27(e.message,"js/inti/mulai.js",0)}
 try{try{document.documentElement.dataset.theme=localStorage.getItem('tokotema')||'dark'}catch(e){document.documentElement.dataset.theme='dark'};}catch(e){window.galat27&&galat27(e.message,"js/inti/mulai.js",0)}
 try{addEventListener('scroll',()=>{const b=$('#pg'),h=document.documentElement;if(b)b.style.width=(h.scrollTop/((h.scrollHeight-h.clientHeight)||1)*100)+'%'},{passive:true});}catch(e){window.galat27&&galat27(e.message,"js/inti/mulai.js",0)}

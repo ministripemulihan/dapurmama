@@ -146,9 +146,28 @@ body.admapp{--abl:#7dbbff}:root[data-theme="light"] body.admapp{--abl:#1b4f93}
 
 /* ===== v39 Lebar tampilan admin: Otomatis / Komputer / HP ===== */
 :root{--aw:640px}
-@media(min-width:980px){:root:not([data-lebar="hp"]):not([data-lebar="pc"]){--aw:1200px}}
-:root[data-lebar="pc"]{--aw:1200px}
+@media(min-width:980px){:root:not([data-lebar="hp"]):not([data-lebar="pc"]){--aw:min(1680px,100vw)}}
+:root[data-lebar="pc"]{--aw:min(1680px,100vw)}
 :root[data-lebar="hp"]{--aw:640px}
-@media(min-width:900px){:root:not([data-lebar="hp"]) body.admapp .agrid{grid-template-columns:repeat(8,1fr)}}
 .ahi button.alb,.abar span button.alb{font-size:18px}
 @media(max-width:700px){.alb{display:none}}
+
+/* ===== v40 Tata letak komputer: lebih lebar (maks 1680 px), beranda 2 kolom, kartu ringkas, nav melayang ===== */
+.akp{display:none;grid-template-columns:repeat(3,1fr);gap:14px;margin:12px 0}
+.akt{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;cursor:pointer;font:inherit;text-align:left;box-shadow:0 10px 26px -18px rgba(0,0,0,.6)}
+.akt b{font-size:30px;line-height:1.1;color:var(--abl,#1a8fe3)}.akt span{font-size:13.5px;color:var(--mut)}
+.akt.pr{border-color:#ef4444}.akt.pr b{color:#ef4444}
+@media(min-width:1000px){
+:root:not([data-lebar="hp"]) body.admapp .ah{padding:calc(14px + env(safe-area-inset-top,0px)) 36px 90px}
+:root:not([data-lebar="hp"]) body.admapp .ahs{padding:0 36px}
+:root:not([data-lebar="hp"]) body.admapp .ahg{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:28px;align-items:start}
+:root:not([data-lebar="hp"]) body.admapp .ahg.ahs1{grid-template-columns:minmax(0,1fr)}
+:root:not([data-lebar="hp"]) body.admapp .akp{display:grid}
+:root:not([data-lebar="hp"]) body.admapp .agrid{grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:20px 10px}
+:root:not([data-lebar="hp"]) body.admapp .aic{width:74px;height:74px;font-size:34px;border-radius:24px}
+:root:not([data-lebar="hp"]) body.admapp .atile{font-size:14.5px}
+:root:not([data-lebar="hp"]) body.admapp .anav{max-width:780px;bottom:14px;border-radius:26px}
+:root:not([data-lebar="hp"]) body.admapp .w{padding-bottom:140px}
+:root:not([data-lebar="hp"]) body.admapp .abar{padding-left:36px;padding-right:36px}
+}
+@media(min-width:1000px){:root:not([data-lebar="hp"]) body.admapp .ahl{display:flex;flex-direction:column}:root:not([data-lebar="hp"]) body.admapp .abr{order:9;margin-top:6px}}

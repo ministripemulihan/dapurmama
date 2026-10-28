@@ -167,7 +167,7 @@ function postCek(){
 /* ================= PENJUAL ================= */
 
 /* 1. Kasir: uang diterima dan kembalian */
-function kasSub(){return (V.kas||[]).reduce(function(a,l){var p=P(l.pid);return a+(p?price(p)*l.q:0)},0)}
+function kasSub(){var s=(V.kas||[]).reduce(function(a,l){var p=P(l.pid);return a+(p?price(p)*l.q:0)},0);return typeof kvPot=='function'?s-kvPot(s):s}
 function cuOut(){var e=$1('ck29');if(!e)return;var sub=kasSub(),cu=+V.cu29||0;
  if(!cu){e.textContent='';return}
  e.textContent=cu>=sub?'Kembalian '+rp(cu-sub):'Kurang '+rp(sub-cu);e.className='k29 '+(cu>=sub?'ok':'bad')}

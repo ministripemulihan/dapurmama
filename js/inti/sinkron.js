@@ -40,7 +40,8 @@ async function polStaf(silent){if(sync.t||push.b)return 0;
   try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(!silent&&idle())draw();return 1}catch(e){return 0}}
 /* Pembeli: ikuti status pesanan (disetujui/dikirim) dari Sheet */
 async function stat(inv){const o=S.o.find(x=>x.inv==inv),u=S.api||API_URL;if(!o||!u||adm()||['selesai','dibatalkan','kedaluwarsa'].includes(o.status))return;
- try{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({act:'status',inv})}).then(x=>x.json());if(!r.ok||!r.s||r.s==o.status||r.s=='menunggu')return;
+ try{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({act:'status',inv})}).then(x=>x.json());if(r.ok&&/^\d{4}-\d{2}-\d{2}$/.test(String(r.d||''))&&r.d!=o.siap){o.siap=r.d;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(!r.s||r.s==o.status||r.s=='menunggu'){draw();return}}
+  if(!r.ok||!r.s||r.s==o.status||r.s=='menunggu')return;
   if(['dibatalkan','kedaluwarsa'].includes(r.s)&&['menunggu','verifikasi'].includes(o.status))rel(o);
   if(r.s=='verifikasi'&&o.status!='menunggu')return;
   o.status=r.s;if(r.r)o.resi=r.r;if(PAID.includes(r.s)&&!o.paid)o.paid=Date.now();localStorage.setItem(KEY,JSON.stringify(S));draw()}catch(e){}}

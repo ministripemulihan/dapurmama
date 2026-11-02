@@ -1,6 +1,6 @@
 /* js/inti/mulai.js: keadaan awal dan perintah yang berjalan saat halaman dibuka. Dimuat PALING AKHIR.
    Baris pertama memeriksa apakah ada berkas lain yang gagal dimuat, lalu namanya dicatat. */
-(function(){var ada=window.__muat||[],perlu=["js/inti/dasar.js","js/inti/sinkron.js","js/inti/tampilan.js","js/inti/pwa.js","js/media/foto.js","js/media/qris.js","js/media/bunyi.js","js/toko/ongkir.js","js/toko/wilayah.js","js/toko/alamat.js","js/toko/jadwal.js","js/toko/resi.js","js/toko/katalog.js","js/toko/belanja.js","js/toko/akun.js","js/toko/info.js","js/admin/pesanan.js","js/admin/stok.js","js/admin/offline.js","js/admin/cetak.js","js/admin/laporan.js","js/admin/cadangan.js","js/admin/pengguna.js","js/admin/katalog.js","js/admin/pengaturan.js","js/admin/biaya.js","js/admin/keuangan.js","js/admin/beranda.js","js/admin/dasbor.js"],hilang=perlu.filter(function(p){return ada.indexOf(p)<0});
+(function(){var ada=window.__muat||[],perlu=["js/inti/dasar.js","js/inti/sinkron.js","js/inti/tampilan.js","js/inti/pwa.js","js/media/foto.js","js/media/qris.js","js/media/bunyi.js","js/toko/ongkir.js","js/toko/wilayah.js","js/toko/alamat.js","js/toko/jadwal.js","js/toko/resi.js","js/toko/katalog.js","js/toko/belanja.js","js/toko/akun.js","js/toko/info.js","js/admin/pesanan.js","js/admin/stok.js","js/admin/offline.js","js/admin/cetak.js","js/admin/laporan.js","js/admin/cadangan.js","js/admin/pengguna.js","js/admin/katalog.js","js/admin/pengaturan.js","js/admin/biaya.js","js/admin/biayastaf.js","js/admin/keuangan.js","js/admin/akuntan.js","js/admin/beranda.js","js/admin/dasbor.js"],hilang=perlu.filter(function(p){return ada.indexOf(p)<0});
  if(hilang.length&&window.galat27)window.galat27('Berkas gagal dimuat: '+hilang.join(', '),'js/inti/mulai.js',0)})();
 let S=load(),V={q:'',cat:'Semua',tab:'home',open:null,sel:{q:1},kota:'',kur:''};
 try{document.documentElement.dataset.lebar=localStorage.getItem('tokolebar')||'auto'}catch(e){}
@@ -37,5 +37,6 @@ try{setInterval(ulasLoad,90000);}catch(e){window.galat27&&galat27(e.message,"js/
 try{['pointerdown','keydown','touchend','click'].forEach(e=>addEventListener(e,bunyiBuka,{passive:true}));}catch(e){window.galat27&&galat27(e.message,"js/inti/mulai.js",0)}
 try{try{poResetLokal()}catch(e){};}catch(e){window.galat27&&galat27(e.message,"js/inti/mulai.js",0)}
 try{setInterval(()=>{try{poResetLokal()}catch(e){}},60000);}catch(e){window.galat27&&galat27(e.message,"js/inti/mulai.js",0)}
+try{setTimeout(()=>{try{if(typeof hpMulai=='function')hpMulai()}catch(e){}},2500)}catch(e){}
 try{draw()}catch(e){if(window.galat27)window.galat27(e.message,"js/inti/mulai.js",0);var a=document.getElementById("app");if(a)a.innerHTML="<div style='padding:24px;font:16px/1.5 system-ui,sans-serif'><b>Sebagian aplikasi gagal dimuat.</b><p>Coba muat ulang halaman. Jika masih begini, hubungi toko.</p></div>"}
 (window.__muat=window.__muat||[]).push('js/inti/mulai.js');

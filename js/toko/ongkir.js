@@ -3,7 +3,7 @@ const KOTA={Surabaya:'sby',Sidoarjo:'jt',Malang:'jt',Jakarta:'jw',Bandung:'jw',S
 const TR={JNE:{sby:9000,jt:10000,jw:18000,lj:32000,e:'2–4 hari'},TIKI:{sby:10000,jt:11000,jw:19000,lj:34000,e:'2–5 hari'},Wahana:{sby:8000,jt:9000,jw:16000,lj:28000,e:'3–6 hari'},'J&T':{sby:9000,jt:10000,jw:18000,lj:33000,e:'2–4 hari'},'Pos Indonesia':{sby:8000,jt:9000,jw:16000,lj:28000,e:'3–6 hari'}};
 /* ===== v26: wilayah lengkap + kode pos, pindah alamat tamu, lacak banyak resi, kurir J&T/Pos/Grab ===== */
 const KURIR_ALL=['JNE','TIKI','Wahana','J&T','Pos Indonesia','Gojek','Grab'];
-const isInstan=k=>k=='Gojek'||k=='Grab';
+const isInstan=k=>k=='Gojek'||k=='Grab'||k=='Kurir Toko';
 const trFee=(k,z)=>TR[k][z]||Math.round(TR[k].lj*1.5/1000)*1000;
 /* --- 1. Wilayah: provinsi > kota/kabupaten > kecamatan > kelurahan + kode pos --- */
 /* Data: folder wilayah/ (indeks.js + p<kode provinsi>.js), dimuat sesuai kebutuhan. Sumber: data wilayah terbuka (emsifa/api-wilayah-indonesia). */

@@ -11,10 +11,10 @@ const ADR_F=['label','nama','wa','alamat','kota','pos','ct','kel','kec','prov','
 function adrL(){try{const a=JSON.parse(localStorage.getItem(adrKey()));return Array.isArray(a)?a.filter(x=>x&&x.id&&x.alamat).slice(0,ADR_MAX):[]}catch(e){return[]}}
 function adrWrite(L,t){try{localStorage.setItem(adrKey(),JSON.stringify(L));if(t!=null)localStorage.setItem(adrTKey(),String(t))}catch(e){}}
 function adrNorm(L){L=L.slice(0,ADR_MAX);if(L.length&&!L.some(x=>x.utama))L[0].utama=1;let s=0;L.forEach(x=>{if(x.utama){if(s)x.utama=0;s=1}});return L}
-async function adrSync(L){const m=me();if(!m||m.r!='customer'||!tk()||!(S.api||API_URL))return;
+async function adrSync(L){const m=me();if(!m||m.r=='akuntan'||!tk()||!(S.api||API_URL))return;
  try{const r=await pubPost({act:'alamat_set',tok:tk(),a:L});if(r.ok&&r.t)adrWrite(adrL(),r.t)}catch(e){}}
 function adrSave(L){L=adrNorm(L);adrWrite(L,Date.now());adrSync(L);return L}
-async function adrLoad(){const m=me();if(!m||m.r!='customer'||!tk()||!(S.api||API_URL)||V.adrQ===adrUser())return;V.adrQ=adrUser();
+async function adrLoad(){const m=me();if(!m||m.r=='akuntan'||!tk()||!(S.api||API_URL)||V.adrQ===adrUser())return;V.adrQ=adrUser();
  try{const r=await pubPost({act:'alamat_get',tok:tk()});if(!r.ok)return;const loc=adrL();
   if(Array.isArray(r.a)&&r.t>adrT()){adrWrite(r.a,r.t);draw()}
   else if(loc.length&&r.t<adrT())adrSync(loc)}catch(e){}}

@@ -10,7 +10,8 @@ function qHal(n){n=Math.round(+n||0);return qHttp()?location.origin+location.pat
 function qPilih(id){V.qv=id;draw()}
 function qSwitch(){const L=qList();return`<div class="qsw">${L.map(x=>`<button type="button" class="qchip ${qCur().id==x.id?'on':''}" onclick="qPilih('${x.id}')">${esc(x.n)}</button>`).join('')}</div>`}
 function qErr(el){el.onerror=null;el.outerHTML='<div class="box" style="border-color:var(--bad)"><b class="bad">Gambar QRIS belum ada di hosting</b><p class="mut">Pastikan folder <b>img/</b> (berkas qris-polos.jpg dan qris-hias.jpg) ikut diunggah.</p></div>'}
-function qrimg(){const c=qCur();return qSwitch()+`<img class="qr" onclick="lbQ()" style="cursor:zoom-in" src="${esc(c.u)}" alt="${esc(c.n)} ${esc(NM())}" referrerpolicy="no-referrer" onerror="${c.lain?'imgFb(this)':'qErr(this)'}">`}
+function qrimg(){return qrimg0()+(typeof bankInfo=='function'?bankInfo():'')}
+function qrimg0(){const c=qCur();return qSwitch()+`<img class="qr" onclick="lbQ()" style="cursor:zoom-in" src="${esc(c.u)}" alt="${esc(c.n)} ${esc(NM())}" referrerpolicy="no-referrer" onerror="${c.lain?'imgFb(this)':'qErr(this)'}">`}
 async function qrWarm(){for(const x of qList()){const k=qAbs(x.u);if(QBm[k]!==undefined)continue;QBm[k]=null;try{const r=await fetch(x.u,{referrerPolicy:'no-referrer'});if(r.ok)QBm[k]=await r.blob()}catch(e){QBm[k]=null}}}
 function qBlob(x){return QBm[qAbs(x.u)]||null}
 function qFile(x){const b=qBlob(x);return b?new File([b],x.nm+'.'+(/png/.test(b.type)?'png':'jpg'),{type:b.type||'image/jpeg'}):null}
